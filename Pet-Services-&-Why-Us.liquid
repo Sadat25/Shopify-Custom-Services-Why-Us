@@ -1,0 +1,580 @@
+{%- liquid
+  assign section_id = section.id
+  assign settings = section.settings
+-%}
+
+<style>
+  #shopify-section-{{ section_id }} {
+    --padding-top: {{ settings.padding_top }}px;
+    --padding-bottom: {{ settings.padding_bottom }}px;
+    --mobile-padding-top: {{ settings.mobile_padding_top }}px;
+    --mobile-padding-bottom: {{ settings.mobile_padding_bottom }}px;
+    --heading-color: {{ settings.heading_color }};
+    --border-radius: {{ settings.border_radius }}px;
+    --image-size: {{ settings.image_size }}px;
+  }
+
+  .pet-services-wrapper {
+    padding-top: var(--mobile-padding-top);
+    padding-bottom: var(--mobile-padding-bottom);
+    overflow: hidden;
+  }
+
+  @media screen and (min-width: 768px) {
+    .pet-services-wrapper {
+      padding-top: var(--padding-top);
+      padding-bottom: var(--padding-bottom);
+    }
+  }
+
+  .pet-container {
+    margin: 0 auto;
+    padding: 0 20px;
+    width: 100%;
+    max-width: {% if settings.container_width == 'boxed' %}1620px{% else %}100%{% endif %};
+  }
+
+  .pet-section {
+    padding: 60px 0;
+  }
+
+  .pet-section--services {
+    background-color: {{ settings.bg_color_services }};
+  }
+
+  .pet-section--why-us {
+    background-color: {{ settings.bg_color_why_us }};
+  }
+
+  .pet-section__header {
+    margin-bottom: 50px;
+    text-align: {{ settings.heading_alignment }};
+  }
+
+  .pet-section__title {
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    color: var(--heading-color);
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  .pet-grid {
+    display: grid;
+    gap: 30px;
+    grid-template-columns: 1fr;
+  }
+
+  @media screen and (min-width: 640px) {
+    .pet-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media screen and (min-width: 1024px) {
+    .pet-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  /* Services Styles */
+  .service-card {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.3s ease;
+  }
+
+  {% if settings.enable_animation %}
+  .service-card:hover {
+    transform: translateY(-10px);
+  }
+  {% endif %}
+
+  .service-card__icon-wrapper {
+    width: var(--image-size);
+    height: var(--image-size);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+    position: relative;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .service-card__icon-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    opacity: 0.2;
+    z-index: 1;
+  }
+
+  .service-card__icon {
+ 
+    object-fit: contain;
+    z-index: 2;
+    transition: transform 0.3s ease;
+  }
+
+  .service-card:hover .service-card__icon {
+    transform: scale(1.1);
+  }
+
+  .service-card__title {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    line-height: 1.4;
+  }
+
+  .service-card__description {
+    font-size: 1rem;
+    line-height: 1.6;
+    margin: 0;
+    opacity: 0.8;
+  }
+
+  /* Why Us Styles */
+  .why-us-card {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .why-us-card__image-wrapper {
+    width: var(--image-size);
+    height: var(--image-size);
+    border-radius: 50%;
+    overflow: hidden;
+    margin-bottom: 24px;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    padding: 5px;
+  }
+
+  {% if settings.enable_animation %}
+  .why-us-card:hover .why-us-card__image-wrapper {
+    transform: scale(1.05);
+  }
+  {% endif %}
+
+  .why-us-card__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+
+  .why-us-card__title {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .why-us-card__description {
+    font-size: 16px;
+    line-height: 1.5;
+    margin: 0;
+    opacity: 0.7;
+  }
+
+  /* Animations */
+  [data-animate] {
+    opacity: 0;
+    transition: all 0.6s ease-out;
+  }
+
+  [data-animate="fade-up"] { transform: translateY(30px); }
+  [data-animate="fade-in"] { transform: scale(0.95); }
+
+  .is-visible[data-animate] {
+    opacity: 1;
+    transform: translate(0) scale(1);
+  }
+
+  {{ settings.custom_css }}
+</style>
+
+<div class="pet-services-wrapper">
+  {%- comment -%} Services Section {%- endcomment -%}
+  <section class="pet-section pet-section--services">
+    <div class="pet-container">
+      {%- if settings.heading_services != blank -%}
+        <div class="pet-section__header">
+          <h2 class="pet-section__title">{{ settings.heading_services }}</h2>
+        </div>
+      {%- endif -%}
+
+      <div class="pet-grid">
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'service' -%}
+            <div
+              class="service-card"
+              {{ block.shopify_attributes }}
+              {% if settings.enable_animation %}
+                data-animate="{{ settings.animation_style }}"
+              {% endif %}
+            >
+              <div class="service-card__icon-wrapper">
+                <div class="service-card__icon-bg" style="background-color: {{ block.settings.icon_bg_color }};"></div>
+                {%- if block.settings.icon != blank -%}
+                  {{
+                    block.settings.icon
+                    | image_url: width: 200
+                    | image_tag: class: 'service-card__icon', loading: 'lazy', alt: block.settings.title
+                  }}
+                {%- else -%}
+                  {{ 'image' | placeholder_svg_tag: 'service-card__icon' }}
+                {%- endif -%}
+              </div>
+              <h3 class="service-card__title" style="color: {{ block.settings.title_color }};">
+                {{ block.settings.title }}
+              </h3>
+              <p class="service-card__description" style="color: {{ block.settings.text_color }};">
+                {{ block.settings.description }}
+              </p>
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    </div>
+  </section>
+
+  {%- comment -%} Why Us Section {%- endcomment -%}
+  <section class="pet-section pet-section--why-us">
+    <div class="pet-container">
+      {%- if settings.heading_why_us != blank -%}
+        <div class="pet-section__header">
+          <h2 class="pet-section__title">{{ settings.heading_why_us }}</h2>
+        </div>
+      {%- endif -%}
+
+      <div class="pet-grid">
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'why_us' -%}
+            <div
+              class="why-us-card"
+              {{ block.shopify_attributes }}
+              {% if settings.enable_animation %}
+                data-animate="{{ settings.animation_style }}"
+              {% endif %}
+            >
+              <div
+                class="why-us-card__image-wrapper"
+                style="border-color: {{ block.settings.border_color }}; border-radius: {{ settings.border_radius }}px;"
+              >
+                {%- if block.settings.image != blank -%}
+                  {{
+                    block.settings.image
+                    | image_url: width: 400
+                    | image_tag: class: 'why-us-card__image', loading: 'lazy', alt: block.settings.title
+                  }}
+                {%- else -%}
+                  {{ 'image' | placeholder_svg_tag: 'why-us-card__image' }}
+                {%- endif -%}
+              </div>
+              <h3 class="why-us-card__title" style="color: {{ block.settings.title_color }};">
+                {{ block.settings.title }}
+              </h3>
+              <p class="why-us-card__description" style="color: {{ block.settings.text_color }};">
+                {{ block.settings.description }}
+              </p>
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const observerOptions = {
+      threshold: 0.1,
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+        }
+      });
+    }, observerOptions);
+
+    document.querySelectorAll('[data-animate]').forEach((el) => observer.observe(el));
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Pet Services & Why Us",
+  "tag": "section",
+  "class": "section-pet-services",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout Settings"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding Top",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Padding Bottom",
+      "default": 40
+    },
+    {
+      "type": "select",
+      "id": "container_width",
+      "label": "Container Width",
+      "options": [
+        { "value": "boxed", "label": "Boxed" },
+        { "value": "full", "label": "Full Width" }
+      ],
+      "default": "boxed"
+    },
+    {
+      "type": "header",
+      "content": "Typography & Colors"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading Color",
+      "default": "#333333"
+    },
+    {
+      "type": "select",
+      "id": "heading_alignment",
+      "label": "Heading Alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "header",
+      "content": "Services Section"
+    },
+    {
+      "type": "text",
+      "id": "heading_services",
+      "label": "Services Heading",
+      "default": "Our Services"
+    },
+    {
+      "type": "color",
+      "id": "bg_color_services",
+      "label": "Services Background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "Why Us Section"
+    },
+    {
+      "type": "text",
+      "id": "heading_why_us",
+      "label": "Why Us Heading",
+      "default": "Why Us?"
+    },
+    {
+      "type": "color",
+      "id": "bg_color_why_us",
+      "label": "Why Us Background",
+      "default": "#f0f9f4"
+    },
+    {
+      "type": "header",
+      "content": "Animations"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_animation",
+      "label": "Enable Animations",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "animation_style",
+      "label": "Animation Style",
+      "options": [
+        { "value": "fade-up", "label": "Fade Up" },
+        { "value": "fade-in", "label": "Fade In" }
+      ],
+      "default": "fade-up"
+    },
+    {
+      "type": "header",
+      "content": "Advanced Settings"
+    },
+    {
+      "type": "range",
+      "id": "mobile_padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Mobile Padding Top",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "mobile_padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Mobile Padding Bottom",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "min": 0,
+      "max": 100,
+      "step": 2,
+      "unit": "px",
+      "label": "Image/Icon Border Radius",
+      "default": 100
+    },
+    {
+      "type": "range",
+      "id": "image_size",
+      "min": 80,
+      "max": 300,
+      "step": 5,
+      "unit": "px",
+      "label": "Image/Icon Size",
+      "default": 150
+    },
+    {
+      "type": "textarea",
+      "id": "custom_css",
+      "label": "Custom CSS"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "service",
+      "name": "Service Block",
+      "limit": 8,
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "icon",
+          "label": "Icon Image"
+        },
+        {
+          "type": "color",
+          "id": "icon_bg_color",
+          "label": "Icon Background Color",
+          "default": "#e6f3ff"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Service Title"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "Description",
+          "default": "Describe your professional pet service here."
+        },
+        {
+          "type": "color",
+          "id": "title_color",
+          "label": "Title Color",
+          "default": "#333333"
+        },
+        {
+          "type": "color",
+          "id": "text_color",
+          "label": "Text Color",
+          "default": "#666666"
+        }
+      ]
+    },
+    {
+      "type": "why_us",
+      "name": "Why Us Block",
+      "limit": 8,
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Circular Image"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Why Choose Us"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "Description",
+          "default": "Briefly explain why customers should trust your clinic."
+        },
+        {
+          "type": "color",
+          "id": "border_color",
+          "label": "Border Color",
+          "default": "#d1e7dd"
+        },
+        {
+          "type": "color",
+          "id": "title_color",
+          "label": "Title Color",
+          "default": "#333333"
+        },
+        {
+          "type": "color",
+          "id": "text_color",
+          "label": "Text Color",
+          "default": "#666666"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Pet Services & Why Us",
+      "blocks": [
+        { "type": "service" },
+        { "type": "service" },
+        { "type": "service" },
+        { "type": "service" },
+        { "type": "why_us" },
+        { "type": "why_us" },
+        { "type": "why_us" },
+        { "type": "why_us" }
+      ]
+    }
+  ]
+}
+{% endschema %}
